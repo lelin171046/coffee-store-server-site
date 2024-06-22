@@ -33,7 +33,8 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const coffeeCollection = client.db('coffeeBD').collection('coffee')
+    const coffeeCollection = client.db('coffeeBD').collection('coffee');
+    const userCollection = client.db('usersDB').collection('user');
 
     //upload data
     app.post('/coffee', async(req, res) =>{
@@ -55,6 +56,39 @@ async function run() {
       const quary = {_id : new ObjectId(id)};
       const result = await coffeeCollection.deleteOne(quary);
       res.send(result);
+    })
+    ///upload user data & api
+    app.get('/user', async(req, res)=>{
+      const cursor = userCollection.find();
+      const users = await cursor.toArray();
+      res.send(users)
+    })
+    ///update user login user time
+    app.patch('/user', async(req, res) =>{
+      const user = req.body;
+      const filter = { email: user.email};
+      const updateDoc = {
+        $set: {
+          lastLoggedAt : user.lastLoggedAt
+        }
+      }
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result)
+
+    })
+
+    ///Delete user
+    app.delete('/user/:id', async(req, res)=>{
+      const id = req.params.id;
+      const quary = {_id : new ObjectId(id)};
+      const result = await userCollection.deleteOne(quary);
+      res.send(result);
+    })
+    app.post('/user', async(req, res) =>{
+      const user = req.body;
+      console.log(user);
+      const result = await userCollection.insertOne(user);
+      res.send(result)
     })
     //Update
     app.put('/coffee/:id', async(req, res) =>{
